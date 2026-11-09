@@ -39,20 +39,21 @@ This generated 18 targeted safety checks covering the main threat vectors.
 
 ## One Wrong AI Output and How It Was Caught
 
-<!-- TODO: Fill this in honestly with an actual mistake the AI made during development.
-     Examples of things to describe:
-     - A hallucinated API method name that didn't exist in the google-genai SDK
-     - A wrong SQL query structure that broke idempotency
-     - An incorrect test assertion that masked a real bug
-     - A schema mismatch that caused silent data loss
+### Parameter Name Shadowing in `weather_tools.py`
 
-     Be specific: what did the AI generate, why was it wrong,
-     and how did you catch it (test failure, manual check, reading docs)?
-     Do NOT fabricate this — only write what actually happened.
--->
+**What happened:**
+During Phase 2, the AI generated the weather tools and imported `from datetime import date`. However, the function definition for `get_forecast` had a parameter also named `date: str`. Inside the function, the AI wrote:
+```python
+parsed = date.fromisoformat(date)
+```
+Because the string parameter `date` shadowed the imported `date` class, Python threw:
+`AttributeError: 'str' object has no attribute 'fromisoformat'`.
 
-> **Action required:** Replace this block with a real example from your development session.
-> The evaluator will expect a genuine, specific mistake — not a generic description.
+**How it was caught:**
+Running `pytest tests/test_tools.py` immediately caught the crash during unit test execution.
+
+**How it was fixed:**
+Aliased the module import to `from datetime import date as dt_date` and called `dt_date.fromisoformat(date)`. The AI was then instructed to use distinct variable names whenever parsing date strings.
 
 ---
 
@@ -62,3 +63,4 @@ This generated 18 targeted safety checks covering the main threat vectors.
 - The model `gemini-3.5-flash` was used (confirmed working; `gemini-2.5-flash` hits a 20 req/day free-tier limit).
 - All agent outputs were verified against the ground-truth `school-data.json` before being accepted.
 - The policy engine (`policy_engine.py`) was written as pure deterministic Python — no LLM was used for threshold decisions.
+
