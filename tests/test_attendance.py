@@ -88,3 +88,4 @@ def test_consecutive_absences_on_real_data():
 
     assert len(tuples) == 3
     assert set(tuples) == expected
+

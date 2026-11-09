@@ -10,6 +10,7 @@ load_dotenv()
 # Service URLs and Database
 SCHOOL_API_URL: str = os.getenv("SCHOOL_API_URL", "http://127.0.0.1:8001").rstrip("/")
 LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
+LLM_MODEL: str = os.getenv("LLM_MODEL", "gemini-3.5-flash")
 DB_PATH: str = os.getenv("DB_PATH", "schoolops.db")
 SENDER_FAIL_RATE: float = float(os.getenv("SENDER_FAIL_RATE", "0.2"))
 

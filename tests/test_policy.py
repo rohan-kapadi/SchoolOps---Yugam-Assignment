@@ -201,3 +201,4 @@ def test_dynamic_rules_extension(baseline_safe_weather, baseline_safe_aqi):
     res2 = evaluate_weather_policy(weather_gale, baseline_safe_aqi, rules=custom_rules)
     assert res2["status"] == "ACTION_REQUIRED"
     assert any("Severe winds" in r for r in res2["reasons"])
+

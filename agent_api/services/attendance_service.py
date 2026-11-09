@@ -130,3 +130,4 @@ def fetch_and_evaluate_absences(
 
     data = get_consecutive_absent_students(records, students, min_streak=min_streak)
     return {"status": "ok", "data": data}
+
