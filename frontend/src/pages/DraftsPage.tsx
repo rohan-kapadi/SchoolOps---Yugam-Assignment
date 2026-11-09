@@ -5,8 +5,9 @@ import {
   FileText, CheckCircle, XCircle, RefreshCw, Edit3, Calendar, Filter, Eye, MessageSquare
 } from "lucide-react";
 import {
-  getDrafts, approveDraft, rejectDraft, updateDraft, getMessages, Draft, OutboxMessage
+  getDrafts, approveDraft, rejectDraft, updateDraft, getMessages
 } from "../api";
+import type { Draft, OutboxMessage } from "../api";
 import { useToast } from "../hooks";
 import { StatusBadge, Spinner, EmptyState, useAutoRefresh } from "../components";
 

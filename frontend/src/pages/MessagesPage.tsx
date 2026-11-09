@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { MessageSquare, RefreshCw, Filter, Send, AlertCircle, Clock } from "lucide-react";
-import { getMessages, OutboxMessage } from "../api";
+import { getMessages } from "../api";
+import type { OutboxMessage } from "../api";
 import { useToast } from "../hooks";
 import { StatusBadge, Spinner, EmptyState, useAutoRefresh } from "../components";
 

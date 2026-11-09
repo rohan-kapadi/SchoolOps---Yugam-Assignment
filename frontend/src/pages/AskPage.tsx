@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, ChevronDown, ChevronUp, Zap, Info } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { askAgent, AskResponse } from "../api";
+import { askAgent } from "../api";
+import type { AskResponse } from "../api";
 import { useToast } from "../hooks";
 import { AutoTextarea, TypingIndicator } from "../components";
 

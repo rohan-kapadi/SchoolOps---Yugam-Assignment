@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Play, Sun, AlertTriangle, CheckCircle } from "lucide-react";
-import { triggerMorningJob, MorningJobResult } from "../api";
+import { triggerMorningJob } from "../api";
+import type { MorningJobResult } from "../api";
 import { useToast } from "../hooks";
 import { Spinner, StatusBadge } from "../components";
 

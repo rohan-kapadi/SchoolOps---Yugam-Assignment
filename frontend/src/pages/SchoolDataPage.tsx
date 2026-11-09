@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Users, Bus, Calendar, BookOpen, ClipboardList, Search, ChevronDown, ChevronUp } from "lucide-react";
-import { getStudents, getRoutes, getEvents, getAttendance, getPolicy, Student, BusRoute, Event, AttendanceDay } from "../api";
+import { getStudents, getRoutes, getEvents, getAttendance, getPolicy } from "../api";
+import type { Student, BusRoute, Event, AttendanceDay } from "../api";
 import { Spinner, EmptyState } from "../components";
 
 type Tab = "students" | "routes" | "events" | "attendance" | "policy";

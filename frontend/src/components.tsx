@@ -1,6 +1,7 @@
 // Shared UI components
 
-import { ReactNode, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import type { ReactNode } from "react";
 import { X, CheckCircle, XCircle, Info, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "./hooks";
 

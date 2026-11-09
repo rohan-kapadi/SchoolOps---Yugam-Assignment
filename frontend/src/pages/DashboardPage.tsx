@@ -5,7 +5,8 @@ import {
   MessageSquare, FileText, Users, Calendar, TrendingUp, Sun,
   CheckCircle, Clock, AlertTriangle, RefreshCw
 } from "lucide-react";
-import { getDrafts, getMessages, getStudents, getEvents, checkAgentHealth, checkSchoolHealth, Draft } from "../api";
+import { getDrafts, getMessages, getStudents, getEvents, checkAgentHealth, checkSchoolHealth } from "../api";
+import type { Draft } from "../api";
 import { useToast } from "../hooks";
 import { StatusBadge, Spinner, HealthDot, useAutoRefresh } from "../components";
 
@@ -380,3 +381,4 @@ function KpiCard({
     </div>
   );
 }
+
