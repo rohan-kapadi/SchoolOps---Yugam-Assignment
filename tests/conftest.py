@@ -46,3 +46,4 @@ class MockGenAIClient:
             return res
         # Default fallback
         return MockModelResponse(text="Default mock answer", function_calls=None)
+

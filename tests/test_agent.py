@@ -161,3 +161,4 @@ def test_ask_endpoint_fastapi():
         assert data["answer"] == "Mocked principal response"
         assert len(data["tool_trace"]) == 1
         assert "School API: /school/events" in data["sources"]
+

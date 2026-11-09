@@ -50,7 +50,7 @@ def clear_caches():
 
 def test_ttl_cache_basic_and_expiration():
     cache = TTLCache()
-    cache.set("key1", "val1", ttl_seconds=0.05)
+    cache.set("key1", "val1", ttl_seconds=0.03)
     assert cache.get("key1") == "val1"
 
     # Expire entry
