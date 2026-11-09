@@ -154,22 +154,45 @@ class AgentOrchestrator:
         }
 
     def _call_model_with_retry(self, contents: list[Any], config: Any, retries: int = 3) -> Any:
-        """Call LLM with exponential backoff for rate limits (HTTP 429)."""
+        """Call LLM with exponential backoff for transient server errors (503/500/502) and rate limits (429).
+        Falls back to a lighter model if the primary model is unavailable due to high demand.
+        """
+        models = [self.model]
+        if "flash-lite" not in self.model:
+            models.append("gemini-3.1-flash-lite")
+
         last_error = None
-        for attempt in range(retries):
-            try:
-                return self.client.models.generate_content(
-                    model=self.model,
-                    contents=contents,
-                    config=config,
-                )
-            except Exception as exc:
-                last_error = exc
-                err_str = str(exc)
-                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                    time.sleep(2.0 * (attempt + 1))
-                    continue
-                raise
+        for model_name in models:
+            for attempt in range(retries):
+                try:
+                    return self.client.models.generate_content(
+                        model=model_name,
+                        contents=contents,
+                        config=config,
+                    )
+                except Exception as exc:
+                    last_error = exc
+                    err_str = str(exc)
+                    is_transient = any(
+                        term in err_str
+                        for term in [
+                            "429",
+                            "RESOURCE_EXHAUSTED",
+                            "503",
+                            "UNAVAILABLE",
+                            "500",
+                            "502",
+                            "504",
+                            "high demand",
+                        ]
+                    )
+                    if is_transient and attempt < retries - 1:
+                        time.sleep(1.5 * (attempt + 1))
+                        continue
+                    if is_transient:
+                        # Try next model in fallback chain
+                        break
+                    raise
 
         raise last_error
 

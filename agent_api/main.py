@@ -79,7 +79,17 @@ def ask(req: AskRequest) -> AskResponse:
     if not req.question.strip():
         raise HTTPException(status_code=422, detail="Question cannot be empty")
 
-    result = ask_agent(req.question)
+    try:
+        result = ask_agent(req.question)
+    except Exception as exc:
+        err_msg = str(exc)
+        if any(term in err_msg for term in ["503", "UNAVAILABLE", "high demand"]):
+            raise HTTPException(
+                status_code=503,
+                detail="The AI model is temporarily experiencing high demand on Google's servers. Please try your question again in a moment.",
+            ) from exc
+        raise HTTPException(status_code=500, detail=f"Agent error: {err_msg}") from exc
+
     return AskResponse(
         answer=result.get("answer", ""),
         tool_trace=result.get("tool_trace", []),
