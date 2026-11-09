@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+httpx
+pydantic
+apscheduler
+pytest
+python-dotenv
+google-genai
