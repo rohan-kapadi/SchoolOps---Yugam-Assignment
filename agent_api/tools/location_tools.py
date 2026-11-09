@@ -138,3 +138,4 @@ def resolve_event_coordinates(
     if event_lat is not None and event_lon is not None:
         return event_lat, event_lon
     return fallback_lat, fallback_lon
+

@@ -422,3 +422,4 @@ def test_get_pin_details_cache_hits(mock_get):
     res2 = get_pin_details("302001")
     assert res2["status"] == "ok"
     assert mock_get.call_count == 1
+

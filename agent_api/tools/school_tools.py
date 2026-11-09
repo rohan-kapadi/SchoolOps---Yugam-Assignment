@@ -119,3 +119,4 @@ def get_attendance(
 def get_policy(client: httpx.Client | None = None) -> dict[str, Any]:
     """Fetch official school policy document text."""
     return _school_request("/school/policy", client=client)
+
