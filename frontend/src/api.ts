@@ -5,9 +5,18 @@ const SCHOOL_API = "http://localhost:8001";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+export interface ToolTraceItem {
+  tool: string;
+  input?: unknown;
+  args?: unknown;
+  output?: unknown;
+  result?: unknown;
+  status?: string;
+}
+
 export interface AskResponse {
   answer: string;
-  tool_trace: Array<{ tool: string; input: unknown; output: unknown }>;
+  tool_trace: ToolTraceItem[];
   sources: string[];
 }
 

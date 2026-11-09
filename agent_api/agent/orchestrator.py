@@ -109,6 +109,9 @@ class AgentOrchestrator:
                 tool_trace.append({
                     "tool": tool_name,
                     "args": tool_args,
+                    "input": tool_args,
+                    "output": tool_result,
+                    "result": tool_result,
                     "status": status,
                 })
 

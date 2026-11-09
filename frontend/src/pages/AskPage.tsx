@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, ChevronDown, ChevronUp, Zap, Info } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { askAgent } from "../api";
-import type { AskResponse } from "../api";
+import type { AskResponse, ToolTraceItem } from "../api";
 import { useToast } from "../hooks";
 import { AutoTextarea, TypingIndicator } from "../components";
 
@@ -241,9 +241,12 @@ function TraceItem({
   item,
 }: {
   index: number;
-  item: { tool: string; input: unknown; output: unknown };
+  item: ToolTraceItem;
 }) {
   const [open, setOpen] = useState(false);
+  const inputData = item.input ?? item.args ?? {};
+  const outputData = item.output ?? item.result ?? (item.status ? { status: item.status } : "ok");
+
   return (
     <div className="trace-item">
       <button
@@ -254,12 +257,27 @@ function TraceItem({
         <span>
           <span style={{ color: "var(--primary)", marginRight: 6 }}>#{index + 1}</span>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 11 }}>{item.tool}</span>
+          {item.status && (
+            <span
+              style={{
+                marginLeft: 8,
+                fontSize: 10,
+                padding: "1px 6px",
+                borderRadius: 4,
+                background: item.status === "ok" ? "var(--success-light)" : "var(--danger-light)",
+                color: item.status === "ok" ? "var(--success)" : "var(--danger)",
+                textTransform: "uppercase",
+              }}
+            >
+              {item.status}
+            </span>
+          )}
         </span>
         {open ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
       </button>
       {open && (
         <div className="trace-body">
-          {"→ input: " + JSON.stringify(item.input, null, 2) + "\n\n← output: " + JSON.stringify(item.output, null, 2)}
+          {"→ input:\n" + JSON.stringify(inputData, null, 2) + "\n\n← output:\n" + JSON.stringify(outputData, null, 2)}
         </div>
       )}
     </div>
