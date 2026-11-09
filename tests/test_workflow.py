@@ -239,3 +239,4 @@ def test_fastapi_workflow_endpoints(test_db):
     # View /messages
     msg_resp = client.get("/messages")
     assert msg_resp.status_code == 200
+

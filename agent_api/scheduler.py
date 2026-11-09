@@ -34,3 +34,4 @@ def shutdown_scheduler() -> None:
     """Gracefully shutdown background scheduler."""
     if scheduler.running:
         scheduler.shutdown(wait=False)
+

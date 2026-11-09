@@ -78,3 +78,4 @@ class JobRunSchema(BaseModel):
     status: str
     started_at: str
     completed_at: str | None = None
+
