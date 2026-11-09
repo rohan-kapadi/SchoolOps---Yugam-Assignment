@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 from typing import Any
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from agent_api.agent.orchestrator import ask_agent
@@ -39,6 +40,13 @@ app = FastAPI(
     summary="Principal-facing AI agent orchestrator with grounded tool calling and approval workflow.",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
