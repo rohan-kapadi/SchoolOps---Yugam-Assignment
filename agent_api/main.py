@@ -62,6 +62,7 @@ class AskResponse(BaseModel):
 
 class RunJobRequest(BaseModel):
     date: str | None = Field(default=None, description="Optional target date in YYYY-MM-DD format")
+    simulate_adverse_weather: bool = Field(default=False, description="Simulate adverse weather (35mm rain) to test alert generation")
 
 
 @app.get("/health")
@@ -105,7 +106,8 @@ def ask(req: AskRequest) -> AskResponse:
 def trigger_morning_job(req: RunJobRequest | None = None) -> dict[str, Any]:
     """Manually trigger the 06:00 morning operational check for today (or specified date)."""
     target_date = req.date if req and req.date else None
-    return run_morning_workflow(run_date=target_date)
+    simulate = req.simulate_adverse_weather if req else False
+    return run_morning_workflow(run_date=target_date, simulate_adverse_weather=simulate)
 
 
 # ==========================================

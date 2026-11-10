@@ -105,11 +105,17 @@ export async function askAgent(question: string): Promise<AskResponse> {
   return res.json();
 }
 
-export async function triggerMorningJob(date?: string): Promise<MorningJobResult> {
+export async function triggerMorningJob(
+  date?: string,
+  simulateAdverseWeather: boolean = false
+): Promise<MorningJobResult> {
   const res = await fetch(`${AGENT_API}/jobs/morning/run`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ date: date ?? null }),
+    body: JSON.stringify({
+      date: date ?? null,
+      simulate_adverse_weather: simulateAdverseWeather,
+    }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();

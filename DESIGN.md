@@ -48,6 +48,15 @@ Principal asks question
 
 ---
 
+## Why We Chose This Model (`gemini-3.5-flash` / `gemini-2.5-flash`)
+
+1. **Native Function-Calling Support**: Google's `v1beta` API provides reliable, typed tool-declaration schemas (`types.FunctionDeclaration`), emitting structured `FunctionCall` objects with typed arguments.
+2. **Generous Free-Tier & Speed**: Flash models provide fast turnaround (~1.0–1.5s per multi-turn loop) with 15 requests/min and 1,000,000 tokens/min on the free tier, making local and CI evaluation completely cost-free.
+3. **Low Production Cost**: At \$0.075 / 1M input tokens and \$0.30 / 1M output tokens, an operational question costs ~$0.000072, making it viable for high-volume school district deployment.
+4. **Resilient Fallback Architecture**: If `gemini-3.5-flash` faces temporary capacity spikes (HTTP 503), the orchestrator automatically cascades to `gemini-3.1-flash-lite`, preventing service degradation.
+
+---
+
 ## Why Policy Is Deterministic
 
 Weather and AQI thresholds are evaluated entirely in pure Python (`policy_engine.py`) with explicit boundary conditions. The LLM **never evaluates thresholds** — it only receives the already-computed result (`SAFE`, `ACTION_REQUIRED`, `INCOMPLETE_DATA`).

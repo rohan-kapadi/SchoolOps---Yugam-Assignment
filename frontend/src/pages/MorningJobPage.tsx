@@ -13,16 +13,14 @@ export default function MorningJobPage() {
   const [result, setResult] = useState<MorningJobResult | null>(null);
   const { toast } = useToast();
 
-  const today = new Date().toISOString().slice(0, 10);
-
-  const run = async () => {
+  const run = async (simulate: boolean = false) => {
     setRunning(true);
     setResult(null);
     try {
-      const res = await triggerMorningJob(date || undefined);
+      const res = await triggerMorningJob(date || undefined, simulate);
       setResult(res);
       if (res.alerts_count === 0) {
-        toast("success", "Morning check complete — no alerts today");
+        toast("success", "Morning check complete — no alerts today (ALL CLEAR)");
       } else {
         toast("info", `Morning check complete — ${res.alerts_count} alert(s) generated`);
       }
@@ -75,25 +73,40 @@ export default function MorningJobPage() {
             <label
               style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "var(--gray-600)" }}
             >
-              Date (optional — defaults to today)
+              Target Date (optional — defaults to today)
             </label>
             <input
               type="date"
               className="input"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              max={today}
               style={{ maxWidth: 220 }}
             />
+            <div style={{ fontSize: 11, color: "var(--gray-500)", marginTop: 4 }}>
+              School events are on Nov 14 (Assembly), Nov 17 (Football), Nov 18 (Amber Fort), Nov 21 (Sports Day).
+            </div>
           </div>
-          <button
-            className="btn btn-primary btn-lg"
-            onClick={run}
-            disabled={running}
-          >
-            {running ? <Spinner size={15} /> : <Play size={15} />}
-            {running ? "Running…" : "Trigger Morning Check"}
-          </button>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button
+              className="btn btn-primary btn-lg"
+              onClick={() => run(false)}
+              disabled={running}
+            >
+              {running ? <Spinner size={15} /> : <Play size={15} />}
+              {running ? "Checking…" : "Run Live Check (Real Weather)"}
+            </button>
+
+            <button
+              className="btn btn-warning btn-lg"
+              onClick={() => run(true)}
+              disabled={running}
+              style={{ background: "#d97706", color: "white", borderColor: "#b45309" }}
+            >
+              {running ? <Spinner size={15} /> : <AlertTriangle size={15} />}
+              Simulate Heavy Rain (35 mm)
+            </button>
+          </div>
         </div>
       </div>
 

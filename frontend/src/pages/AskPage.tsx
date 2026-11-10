@@ -1,7 +1,7 @@
 // AskPage — conversational agent interface
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, ChevronDown, ChevronUp, Zap, Info } from "lucide-react";
+import { Send, Bot, User, ChevronDown, ChevronUp, Zap, Info, Trash2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { askAgent } from "../api";
 import type { AskResponse, ToolTraceItem } from "../api";
@@ -13,8 +13,31 @@ interface Message {
   role: "user" | "assistant";
   text: string;
   response?: AskResponse;
-  time: Date;
+  time: string;
   error?: boolean;
+}
+
+const STORAGE_KEY = "schoolops_principal_chat_history";
+const STORAGE_VERSION = 2; // bump to invalidate old cached traces
+
+const DEFAULT_WELCOME: Message = {
+  id: 0,
+  role: "assistant",
+  text: "Hello! I'm SchoolOps AI, your intelligent school assistant. Ask me anything about students, attendance, weather impact on events, or bus routes.",
+  time: new Date().toISOString(),
+};
+
+function loadStoredMessages(): Message[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [DEFAULT_WELCOME];
+    const parsed = JSON.parse(raw);
+    // Check version — discard old cache with broken tool traces
+    if (!Array.isArray(parsed) || parsed.length === 0) return [DEFAULT_WELCOME];
+    if (parsed[0]?._v !== STORAGE_VERSION) return [DEFAULT_WELCOME];
+    return parsed;
+  } catch {}
+  return [DEFAULT_WELCOME];
 }
 
 const SUGGESTED = [
@@ -26,32 +49,50 @@ const SUGGESTED = [
   "Find students in class 7A",
 ];
 
-let msgId = 0;
-
 export default function AskPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 0,
-      role: "assistant",
-      text: "Hello! I'm SchoolOps AI, your intelligent school assistant. Ask me anything about students, attendance, weather impact on events, or bus routes.",
-      time: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(loadStoredMessages);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Persist messages whenever they change (stamp version on first message)
+  useEffect(() => {
+    try {
+      const toStore = messages.map((m, i) => (i === 0 ? { ...m, _v: STORAGE_VERSION } : m));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+    } catch {}
+  }, [messages]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  const clearHistory = () => {
+    if (window.confirm("Clear all conversation history?")) {
+      const reset = [
+        {
+          id: Date.now(),
+          role: "assistant" as const,
+          text: "Conversation cleared. How can I assist you today, Principal?",
+          time: new Date().toISOString(),
+        },
+      ];
+      setMessages(reset);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(reset));
+      } catch {}
+      toast("info", "Chat history cleared");
+    }
+  };
 
   const send = async (question: string) => {
     const q = question.trim();
     if (!q || loading) return;
     setInput("");
 
-    const userMsg: Message = { id: ++msgId, role: "user", text: q, time: new Date() };
+    const nowIso = new Date().toISOString();
+    const userMsg: Message = { id: Date.now(), role: "user", text: q, time: nowIso };
     setMessages((m) => [...m, userMsg]);
     setLoading(true);
 
@@ -59,7 +100,7 @@ export default function AskPage() {
       const res = await askAgent(q);
       setMessages((m) => [
         ...m,
-        { id: ++msgId, role: "assistant", text: res.answer, response: res, time: new Date() },
+        { id: Date.now() + 1, role: "assistant", text: res.answer, response: res, time: new Date().toISOString() },
       ]);
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e);
@@ -67,10 +108,10 @@ export default function AskPage() {
       setMessages((m) => [
         ...m,
         {
-          id: ++msgId,
+          id: Date.now() + 1,
           role: "assistant",
           text: `⚠️ Error: ${err}. Make sure the agent server is running on port 8000.`,
-          time: new Date(),
+          time: new Date().toISOString(),
           error: true,
         },
       ]);
@@ -81,6 +122,33 @@ export default function AskPage() {
 
   return (
     <div className="chat-container" style={{ height: "100%" }}>
+      {/* Persistent chat bar */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "8px 16px",
+          background: "white",
+          borderBottom: "1px solid var(--gray-200)",
+          fontSize: 12,
+        }}
+      >
+        <span style={{ color: "var(--gray-500)", fontWeight: 500 }}>
+          💬 Conversation auto-saved ({messages.length} message{messages.length === 1 ? "" : "s"})
+        </span>
+        {messages.length > 1 && (
+          <button
+            onClick={clearHistory}
+            className="btn btn-ghost btn-sm"
+            style={{ fontSize: 11, color: "var(--danger)", display: "flex", alignItems: "center", gap: 4 }}
+          >
+            <Trash2 size={12} />
+            Clear Chat
+          </button>
+        )}
+      </div>
+
       <div className="chat-messages">
         {messages.map((msg) => (
           <div key={msg.id} className={`chat-bubble ${msg.role}`}>
@@ -112,7 +180,7 @@ export default function AskPage() {
                 )}
               </div>
               <span className="bubble-time">
-                {msg.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                {new Date(msg.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </span>
             </div>
 
@@ -244,8 +312,8 @@ function TraceItem({
   item: ToolTraceItem;
 }) {
   const [open, setOpen] = useState(false);
-  const inputData = item.input ?? item.args ?? {};
-  const outputData = item.output ?? item.result ?? (item.status ? { status: item.status } : "ok");
+  const inputData = item.input ?? item.args ?? null;
+  const outputData = item.output ?? item.result ?? (item.status ? { status: item.status } : null);
 
   return (
     <div className="trace-item">
@@ -277,7 +345,7 @@ function TraceItem({
       </button>
       {open && (
         <div className="trace-body">
-          {"→ input:\n" + JSON.stringify(inputData, null, 2) + "\n\n← output:\n" + JSON.stringify(outputData, null, 2)}
+          {"→ input:\n" + (inputData != null ? JSON.stringify(inputData, null, 2) : "(no args)") + "\n\n← output:\n" + (outputData != null ? JSON.stringify(outputData, null, 2) : "(no output)")}
         </div>
       )}
     </div>

@@ -143,11 +143,9 @@ export default function App() {
             }}
           >
             {page === "dashboard" && <DashboardPage />}
-            {page === "ask" && (
-              <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                <AskPage />
-              </div>
-            )}
+            <div style={{ flex: 1, overflow: "hidden", display: page === "ask" ? "flex" : "none", flexDirection: "column" }}>
+              <AskPage />
+            </div>
             {page === "drafts" && <DraftsPage />}
             {page === "messages" && <MessagesPage />}
             {page === "morning" && <MorningJobPage />}

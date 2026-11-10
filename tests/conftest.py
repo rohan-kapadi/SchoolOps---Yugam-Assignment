@@ -47,3 +47,24 @@ class MockGenAIClient:
         # Default fallback
         return MockModelResponse(text="Default mock answer", function_calls=None)
 
+
+@pytest.fixture(autouse=True)
+def fallback_school_api_in_tests(monkeypatch):
+    """Ensure tests pass standalone even if the background School API server (:8001) is offline."""
+    from fastapi.testclient import TestClient
+    from agent_api.tools import school_tools
+    from school_api.main import app as school_app
+
+    orig_school_request = school_tools._school_request
+
+    def smart_school_request(path: str, params: dict | None = None, timeout: float = 10.0, client: Any = None):
+        res = orig_school_request(path, params=params, timeout=timeout, client=client)
+        if res.get("status") == "data_unavailable" and "connection error" in str(res.get("reason", "")).lower():
+            tc = TestClient(school_app)
+            clean_params = {k: v for k, v in (params or {}).items() if v is not None}
+            resp = tc.get(path, params=clean_params)
+            return school_tools._handle_response(resp)
+        return res
+
+    monkeypatch.setattr(school_tools, "_school_request", smart_school_request)
+

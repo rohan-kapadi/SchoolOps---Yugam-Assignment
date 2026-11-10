@@ -15,6 +15,7 @@ def run_morning_workflow(
     run_date: str | dt_date | None = None,
     db_path: str | None = None,
     client: httpx.Client | None = None,
+    simulate_adverse_weather: bool = False,
 ) -> dict[str, Any]:
     """Execute 06:00 AM school day morning operational check.
 
@@ -67,8 +68,21 @@ def run_morning_workflow(
 
         # Check weather at event specific coordinates
         lat, lon = resolve_event_coordinates(ev.get("lat"), ev.get("lon"))
-        w_res = get_forecast(lat, lon, ev_date, client=client)
-        aq_res = get_air_quality(lat, lon, ev_date, client=client)
+        if simulate_adverse_weather:
+            w_res = {
+                "status": "ok",
+                "data": {
+                    "date": ev_date,
+                    "max_temp": 28.0,
+                    "rain_probability_max": 85,
+                    "rain_sum": 35.0,
+                    "hourly_rain": [],
+                },
+            }
+            aq_res = {"status": "ok", "data": {"us_aqi": 120}}
+        else:
+            w_res = get_forecast(lat, lon, ev_date, client=client)
+            aq_res = get_air_quality(lat, lon, ev_date, client=client)
 
         policy_eval = evaluate_weather_policy(w_res, aq_res)
 
@@ -105,14 +119,17 @@ def run_morning_workflow(
         stops = route.get("stops", [])
 
         stop_rainfalls: list[float] = []
-        for stop in stops:
-            s_lat = stop.get("lat")
-            s_lon = stop.get("lon")
-            if s_lat is not None and s_lon is not None:
-                stop_w = get_forecast(s_lat, s_lon, today_str, client=client)
-                if stop_w.get("status") == "ok":
-                    r_sum = stop_w.get("data", {}).get("rain_sum") or 0.0
-                    stop_rainfalls.append(float(r_sum))
+        if simulate_adverse_weather:
+            stop_rainfalls = [35.0]
+        else:
+            for stop in stops:
+                s_lat = stop.get("lat")
+                s_lon = stop.get("lon")
+                if s_lat is not None and s_lon is not None:
+                    stop_w = get_forecast(s_lat, s_lon, today_str, client=client)
+                    if stop_w.get("status") == "ok":
+                        r_sum = stop_w.get("data", {}).get("rain_sum") or 0.0
+                        stop_rainfalls.append(float(r_sum))
 
         route_policy = evaluate_weather_policy(
             weather={"max_temp": 30.0, "rain_probability_max": 10, "rain_sum": 0.0},
